@@ -1,6 +1,6 @@
 # Hello Smart Contracts
 
-Built with Polkadot and Ink. Uses the [Aleph Testnet](test.azero.dev/#/accounts)
+Built with Polkadot and Ink. Uses the [Aleph Testnet](http://test.azero.dev/#/accounts)
 
 ## Setup
 
@@ -18,5 +18,3 @@ Built with Polkadot and Ink. Uses the [Aleph Testnet](test.azero.dev/#/accounts)
 * `npm i`
 * `npm start`
 * Open [localhost:8000](http://localhost:8000)
-
-
