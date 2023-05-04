@@ -24,6 +24,8 @@
 	},
 	"type": "module",
 	"dependencies": {
-		"@polkadot/api": "^10.5.1"
+		"@polkadot/api": "^10.5.1",
+		"@polkadot/api-contract": "^10.5.1",
+		"@polkadot/types": "^10.5.1"
 	}
 }
