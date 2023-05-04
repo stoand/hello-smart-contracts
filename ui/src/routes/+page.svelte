@@ -1,6 +1,6 @@
 <script lang="ts">
     import { WsProvider, ApiPromise } from "@polkadot/api";
-    import { keyring } from '@polkadot/ui-keyring';
+    import { keyring } from "@polkadot/ui-keyring";
     import { ContractPromise } from "@polkadot/api-contract";
     import {
         web3Accounts,
@@ -16,6 +16,7 @@
     let free = "";
 
     let nonTestingAccounts: any = [];
+    let status: "missingExtension" | "loading" | "loaded" = "loading";
 
     async function init() {
         const wsProvider = new WsProvider(ALEPH_ZERO_TESTNET_WS);
@@ -41,35 +42,52 @@
 
         const extensions = await web3Enable("attendance-manager");
         if (extensions.length > 0) {
+
             const accounts = await web3Accounts();
-            keyring.loadAll({isDevelopment: true}, accounts);
+            keyring.loadAll({ isDevelopment: true }, accounts);
 
-            let account = keyring.getAccounts().find(acc => acc.address == ACCOUNT);
+            let account = keyring
+                .getAccounts()
+                .find((acc) => acc.address == ACCOUNT);
 
-            nonTestingAccounts = keyring.getAccounts().filter(acc => !acc.meta.isTesting);
+            nonTestingAccounts = keyring
+                .getAccounts()
+                .filter((acc) => !acc.meta.isTesting);
 
             const injector = await web3FromSource(account.meta.source);
 
+            /**
             await contract.tx.inc({
                 gasLimit,
                 storageDepositLimit: null,
             }, 33).signAndSend(account.address, { signer: injector.signer }, result => {
                 console.log('got', result);
             });
+            */
+            status = "loaded";
+        } else {
+            status = "missingExtension";
         }
     }
 
     init();
 </script>
 
-<div>
-    <div>Accounts</div>
-    {#each nonTestingAccounts as account}
+{#if status == "loading"}
+    <div>Loading ...</div>
+{:else if status == "missingExtension"}
     <div>
-        {account.meta.name}
+        <a href="https://polkadot.js.org/extension/">Please download the Polkadot extension</a>
     </div>
-    {/each}
-    
-    
-    Account<br /> <b>{ACCOUNT}</b> has<br /><b>{free}</b> free balance.
-</div>
+{:else}
+    <div>
+        <div>Accounts</div>
+        {#each nonTestingAccounts as account}
+            <div>
+                {account.meta.name}
+            </div>
+        {/each}
+
+        Account<br /> <b>{ACCOUNT}</b> has<br /><b>{free}</b> free balance.
+    </div>
+{/if}
