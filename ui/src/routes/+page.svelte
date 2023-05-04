@@ -15,6 +15,8 @@
     const CONTRACT = "5CvxXq49hTR9HFtuCbnWbFe37UpKKSDWukx2nDHtDdPcXaKh";
     let free = "";
 
+    let nonTestingAccounts: any = [];
+
     async function init() {
         const wsProvider = new WsProvider(ALEPH_ZERO_TESTNET_WS);
         const api = await ApiPromise.create({ provider: wsProvider });
@@ -44,6 +46,8 @@
 
             let account = keyring.getAccounts().find(acc => acc.address == ACCOUNT);
 
+            nonTestingAccounts = keyring.getAccounts().filter(acc => !acc.meta.isTesting);
+
             const injector = await web3FromSource(account.meta.source);
 
             await contract.tx.inc({
@@ -58,6 +62,14 @@
     init();
 </script>
 
-<p>
+<div>
+    <div>Accounts</div>
+    {#each nonTestingAccounts as account}
+    <div>
+        {account.meta.name}
+    </div>
+    {/each}
+    
+    
     Account<br /> <b>{ACCOUNT}</b> has<br /><b>{free}</b> free balance.
-</p>
+</div>
