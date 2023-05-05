@@ -9,8 +9,8 @@
     let workRange = { start: 9.1, end: 12.0 };
     let workRangePixels = { start: 0, width: 0 };
 
-    let currentTime = 9.1;
-    let currentTimeHour = '9';
+    let currentTime = 12.1;
+    let currentTimeHour = '12';
     let currentTimeMinutes = '06';
     let currentTimeOffset = 0;
 
@@ -40,9 +40,9 @@
 </script>
 
 <div class="ml-16 mt-10">
-    <div class="text-5xl">STATUS</div>
+    <div class="text-4xl">STATUS</div>
 
-    <div class="text-5xl mt-10">Arbeitet seit 8:22</div>
+    <div class="text-5xl mt-4">Arbeitet seit 8:22</div>
 
     <div class="p-10">
         <div
