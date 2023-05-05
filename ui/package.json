@@ -29,6 +29,7 @@
 		"@polkadot/extension-dapp": "^0.46.2",
 		"@polkadot/types": "^10.5.1",
 		"@polkadot/ui-keyring": "^3.2.2",
+		"@polkadot/ui-shared": "^3.2.2",
 		"autoprefixer": "^10.4.14",
 		"postcss": "^8.4.23",
 		"tailwindcss": "^3.3.2"
