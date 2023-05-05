@@ -1,14 +1,17 @@
 <script lang="ts">
     import ClockIcon from "./clock-icon.svelte";
+
+    let accounts = ['PeskyRabbit', 'Artichoke'];
 </script>
 
 <div>
-    <div class="flex">
-        <ClockIcon />
-        <div class="text-6xl mt-20 ml-10">Anwesenheits Tracker</div>
-        <div class="grow"></div>
-        <div class="text-4xl mt-24">Aleph Zero Testnet <span class="inline-block w-7 h-7 ml-2 bg-status-good rounded-full"></span></div>
-        <div class="grow"></div>
-        <div class="text-7xl mt-16 mr-20">9:00</div>
+    <div class="text-5xl ml-16 mt-20">Konto Auswählen</div>
+
+    <div class="ml-16 mt-32">
+        {#each accounts as account} 
+            <a href="/asdf1234" class="border-solid border-white-transparent2 border-[1px] text-3xl p-10 mr-16 rounded-3xl rounded bg-white-transparent">
+                (todo colors)
+                {account}</a>
+        {/each}
     </div>
 </div>
