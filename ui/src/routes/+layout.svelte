@@ -1,16 +1,12 @@
 <script lang="ts">
     import "../app.css";
     import ClockIcon from "./clock-icon.svelte";
+    import { currentTime } from "./util";
 
     let time = "";
 
     function updateTime() {
-        let now = new Date();
-        let minutes = now.getMinutes().toString();
-        if (minutes.length == 1) {
-            minutes = "0" + minutes;
-        }
-        time = `${now.getHours()}:${minutes}`;
+        time = currentTime();
     }
 
     updateTime();

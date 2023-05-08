@@ -1,11 +1,12 @@
 <script lang="ts">
     import { web3Accounts, web3Enable } from "@polkadot/extension-dapp";
-    import { page } from '$app/stores';
+    import { page } from "$app/stores";
     import { WsProvider, ApiPromise } from "@polkadot/api";
     import { keyring } from "@polkadot/ui-keyring";
     import { ContractPromise } from "@polkadot/api-contract";
     import Button from "./button.svelte";
-   
+    import { currentTime } from "../util";
+
     const MIN_WORK_HOUR = 8;
     const MAX_WORK_HOUR = 17;
 
@@ -16,9 +17,7 @@
     let workRange = { start: 9.1, end: 12.0 };
     let workRangePixels = { start: 0, width: 0 };
 
-    let currentTime = 12.1;
-    let currentTimeHour = '12';
-    let currentTimeMinutes = '06';
+    let currentTimeStr = currentTime();
     let currentTimeOffset = 0;
 
     $: if (barContainer && !barInited) {
@@ -41,16 +40,28 @@
             (workRange.end - MIN_WORK_HOUR) * hourOffset -
             workRangePixels.start;
 
-        currentTimeOffset = (currentTime - MIN_WORK_HOUR) * hourOffset;
+        updateTime();
     }
+
+    function updateTime() {
+        let now = new Date();
+        let hours = now.getHours() + now.getMinutes() / 60;
+        let hourCount = MAX_WORK_HOUR - MIN_WORK_HOUR;
+        let hourOffset = barContainer.scrollWidth / hourCount;
+
+        currentTimeOffset = (hours - MIN_WORK_HOUR) * hourOffset;
+    }
+
+    setInterval(updateTime, 1000);
 
     let account: any;
     let contract: any;
     let gasLimit: any;
-    type Time = { hour: number, minute: number };
-    let timeRange: { start: Time, end: Time };
+    type Time = { hour: number; minute: number };
+    let timeRange: { start: Time; end: Time };
 
-    let status : 'notStarted' | 'working' | 'done' = 'notStarted';
+    let status: "notStarted" | "working" | "done";
+    let loading = true;
 
     const ALEPH_ZERO_TESTNET_WS = "wss://ws.test.azero.dev";
     const CONTRACT = "5CV6BooUATcJTeWF8dU3C8rscvcY6mhCoXC9NVayb1MfHbdR";
@@ -60,7 +71,7 @@
         await web3Enable("attendance-manager");
         let accounts = await web3Accounts();
 
-        account = accounts.find(acc => acc.address == $page.params.account);
+        account = accounts.find((acc) => acc.address == $page.params.account);
 
         const wsProvider = new WsProvider(ALEPH_ZERO_TESTNET_WS);
         const api = await ApiPromise.create({ provider: wsProvider });
@@ -76,64 +87,70 @@
     }
 
     async function reloadTimeRange() {
-        let { output } = await contract.query.getTodaysTimeRange(account.address, {
-            gasLimit,
-            storageDepositLimit: null,
-        });
+        let { output } = await contract.query.getTodaysTimeRange(
+            account.address,
+            {
+                gasLimit,
+                storageDepositLimit: null,
+            }
+        );
 
         timeRange = output?.toHuman().Ok;
 
         if (timeRange.start && timeRange.end) {
-            status = 'done';
+            status = "done";
         } else if (timeRange.start) {
-            status = 'working';
+            status = "working";
         } else {
-            status = 'notStarted';
+            status = "notStarted";
         }
+
+        loading = false;
     }
 
     init();
-    
 </script>
 
 <div class="ml-16 mt-10">
-    <div class="text-4xl">STATUS</div>
+    {#if !loading}
+        <div class="text-4xl">STATUS</div>
 
-    <div class="text-5xl mt-4">Arbeitet seit 8:22</div>
+        <div class="text-5xl mt-4">Arbeitet seit 8:22</div>
 
-    <div class="p-10">
-        <div
-            bind:this={barContainer}
-            class="relative mt-16 mr-16 h-20 border-white border-solid border-[1px]"
-        >
-            {#each workHours as workHour}
-                <div
-                    style="position: absolute; left: {-38 +
-                        workHour.offset}px; top: -40px"
-                    class="text-3xl"
-                >
-                    {workHour.hour}:00
-                </div>
-            {/each}
+        <div class="p-10">
             <div
-                class="bg-white"
-                style="height: 100%; position: absolute; left: {-38 +
-                    workRangePixels.start}px; width:{workRangePixels.width + 38}px"
-            />
-
-            <div
-                style="position: absolute; left: {-44 +
-                    currentTimeOffset}px; bottom: -50px"
-                class="text-4xl"
+                bind:this={barContainer}
+                class="relative mt-16 mr-16 h-20 border-white border-solid border-[1px]"
             >
-                {currentTimeHour}:{currentTimeMinutes}
-            </div>
-            
-        </div>
-    </div>
+                {#each workHours as workHour}
+                    <div
+                        style="position: absolute; left: {-38 +
+                            workHour.offset}px; top: -40px"
+                        class="text-3xl"
+                    >
+                        {workHour.hour}:00
+                    </div>
+                {/each}
+                <div
+                    class="bg-white"
+                    style="height: 100%; position: absolute; left: {-38 +
+                        workRangePixels.start}px; width:{workRangePixels.width +
+                        38}px"
+                />
 
-    <div class="mt-20">
-        <Button text="Tag Starten" disabled={ status != 'notStarted'} />
-        <Button text="Tag Beenden" disabled={ status != 'working' } />
-    </div>
+                <div
+                    style="position: absolute; left: {-44 +
+                        currentTimeOffset}px; bottom: -50px"
+                    class="text-4xl"
+                >
+                    {currentTimeStr}
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-20">
+            <Button text="Tag Starten" disabled={status != "notStarted"} />
+            <Button text="Tag Beenden" disabled={status != "working"} />
+        </div>
+    {/if}
 </div>
