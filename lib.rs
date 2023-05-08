@@ -2,14 +2,14 @@
 
 #[ink::contract]
 mod incrementer {
-    use chrono::{Timelike, NaiveDateTime, Datelike};
+    use chrono::{Datelike, NaiveDateTime, Timelike};
     use ink::storage::traits::StorageLayout;
     use ink::storage::Mapping;
 
-    #[derive(scale::Encode, scale::Decode, Clone, Default)]
+    #[derive(scale::Encode, scale::Decode, Clone, Default, PartialEq)]
     #[cfg_attr(
         feature = "std",
-        derive(Debug, PartialEq, Eq, scale_info::TypeInfo, StorageLayout)
+        derive(Debug, Eq, scale_info::TypeInfo, StorageLayout)
     )]
     pub struct Date {
         day: u8,
@@ -27,14 +27,23 @@ mod incrementer {
         }
     }
 
-    #[derive(scale::Encode, scale::Decode, Clone, Default)]
+    #[derive(scale::Encode, scale::Decode, Clone, Default, PartialEq)]
     #[cfg_attr(
         feature = "std",
-        derive(Debug, PartialEq, Eq, scale_info::TypeInfo, StorageLayout)
+        derive(Debug, Eq, scale_info::TypeInfo, StorageLayout)
     )]
     pub struct Time {
         hour: u8,
         minute: u8,
+    }
+
+    impl From<NaiveDateTime> for Time {
+        fn from(date: NaiveDateTime) -> Time {
+            Time {
+                hour: date.hour() as u8,
+                minute: date.minute() as u8,
+            }
+        }
     }
 
     #[derive(scale::Encode, scale::Decode, Clone, Default)]
@@ -94,25 +103,62 @@ mod incrementer {
         }
 
         #[ink(message)]
-        pub fn get_time_range(&self, timezone_minute_offset: i32) -> Option<TimeRange> {
+        pub fn get_todays_time_range(&self, timezone_minute_offset: i32) -> TimeRange {
             let account_id = self.env().account_id();
             let naive_date_time = self.naive_date_time_with_offset(timezone_minute_offset);
             let date = Date::from(naive_date_time);
 
-            self.ranges.get((account_id, date))
+            self.ranges.get((account_id, date)).unwrap_or(TimeRange {
+                start: None,
+                end: None,
+            })
         }
 
-        /// Simply returns the current value of our `bool`.
-        #[ink(message)]
-        pub fn get_hour(&self, timezone_minute_offset: i32) -> u64 {
-            let now: u64 = self.env().block_timestamp();
-            let time_seconds = now / 1000 - timezone_minute_offset as u64 * 60;
+        fn update_todays_range(&mut self, range: TimeRange, timezone_minute_offset: i32) {
+            let account_id = self.env().account_id();
+            let naive_date_time = self.naive_date_time_with_offset(timezone_minute_offset);
+            let date = Date::from(naive_date_time);
 
-            if let Some(time) = NaiveDateTime::from_timestamp_opt(time_seconds as i64, 0) {
-                let hour = time.time().hour();
-                hour as u64
+            self.ranges.insert((account_id, date), &range);
+        }
+
+        #[ink(message)]
+        pub fn start_day(&mut self, timezone_minute_offset: i32) -> bool {
+            let todays_time_range = self.get_todays_time_range(timezone_minute_offset);
+            let naive_date_time = self.naive_date_time_with_offset(timezone_minute_offset);
+
+            if todays_time_range.start == None && todays_time_range.end == None {
+                self.update_todays_range(
+                    TimeRange {
+                        start: Some(Time::from(naive_date_time)),
+                        end: None,
+                    },
+                    timezone_minute_offset,
+                );
+
+                true
             } else {
-                0
+                false
+            }
+        }
+
+        #[ink(message)]
+        pub fn end_day(&mut self, timezone_minute_offset: i32) -> bool {
+            let todays_time_range = self.get_todays_time_range(timezone_minute_offset);
+            let naive_date_time = self.naive_date_time_with_offset(timezone_minute_offset);
+
+            if todays_time_range.start != None && todays_time_range.end == None {
+                self.update_todays_range(
+                    TimeRange {
+                        start: todays_time_range.start,
+                        end: Some(Time::from(naive_date_time)),
+                    },
+                    timezone_minute_offset,
+                );
+
+                true
+            } else {
+                false
             }
         }
     }
