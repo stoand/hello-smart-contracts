@@ -10,7 +10,6 @@
     } from "@polkadot/extension-dapp";
     import { CONTRACT_META } from "./contract-meta";
 
-    const ALEPH_ZERO_TESTNET_WS = "wss://ws.test.azero.dev";
     const ACCOUNT = "5DCwWjuUJ8EaExG5iH94WQ3bq5rtLRhxwYCEsKU2Ry9atLHm";
     const CONTRACT = "5CvxXq49hTR9HFtuCbnWbFe37UpKKSDWukx2nDHtDdPcXaKh";
     let free = "";

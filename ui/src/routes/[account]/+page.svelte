@@ -1,11 +1,18 @@
 <script lang="ts">
+    import { web3Accounts, web3Enable } from "@polkadot/extension-dapp";
+    import { page } from '$app/stores';
+    import { WsProvider, ApiPromise } from "@polkadot/api";
+    import { keyring } from "@polkadot/ui-keyring";
+    import { ContractPromise } from "@polkadot/api-contract";
+    import Button from "./button.svelte";
+   
     const MIN_WORK_HOUR = 8;
     const MAX_WORK_HOUR = 17;
 
     let barContainer: any;
     let barInited = false;
 
-    let workHours: { hour: number; offset: number } = [];
+    let workHours: { hour: number; offset: number }[] = [];
     let workRange = { start: 9.1, end: 12.0 };
     let workRangePixels = { start: 0, width: 0 };
 
@@ -20,7 +27,6 @@
         let hourOffset = barContainer.scrollWidth / hourCount;
 
         for (let i = MIN_WORK_HOUR; i <= MAX_WORK_HOUR; i++) {
-            console.log(barContainer.scrollWidth);
             workHours.push({
                 hour: i,
                 offset: (i - MIN_WORK_HOUR) * hourOffset,
@@ -37,6 +43,57 @@
 
         currentTimeOffset = (currentTime - MIN_WORK_HOUR) * hourOffset;
     }
+
+    let account: any;
+    let contract: any;
+    let gasLimit: any;
+    type Time = { hour: number, minute: number };
+    let timeRange: { start: Time, end: Time };
+
+    let status : 'notStarted' | 'working' | 'done' = 'notStarted';
+
+    const ALEPH_ZERO_TESTNET_WS = "wss://ws.test.azero.dev";
+    const CONTRACT = "5CV6BooUATcJTeWF8dU3C8rscvcY6mhCoXC9NVayb1MfHbdR";
+    import CONTRACT_META from "../../contract-meta.json";
+
+    async function init() {
+        await web3Enable("attendance-manager");
+        let accounts = await web3Accounts();
+
+        account = accounts.find(acc => acc.address == $page.params.account);
+
+        const wsProvider = new WsProvider(ALEPH_ZERO_TESTNET_WS);
+        const api = await ApiPromise.create({ provider: wsProvider });
+
+        contract = new ContractPromise(api, CONTRACT_META, CONTRACT);
+
+        gasLimit = api.registry.createType("WeightV2", {
+            refTime: 3912368128,
+            proofSize: 131072,
+        }) as any;
+
+        reloadTimeRange();
+    }
+
+    async function reloadTimeRange() {
+        let { output } = await contract.query.getTodaysTimeRange(account.address, {
+            gasLimit,
+            storageDepositLimit: null,
+        });
+
+        timeRange = output?.toHuman().Ok;
+
+        if (timeRange.start && timeRange.end) {
+            status = 'done';
+        } else if (timeRange.start) {
+            status = 'working';
+        } else {
+            status = 'notStarted';
+        }
+    }
+
+    init();
+    
 </script>
 
 <div class="ml-16 mt-10">
@@ -76,19 +133,7 @@
     </div>
 
     <div class="mt-20">
-        <button
-            href="/asdf1234"
-            class="border-white-transparent2 border-solid border-[1px] text-3xl p-10 mr-16 rounded-3xl rounded bg-white-transparent"
-        >
-            Tag Starten
-        </button>
-
-        <button
-            disabled="disabled"
-            href="/asdf1234"
-            class="border-solid border-[1px] text-3xl p-10 mr-16 rounded-3xl rounded text-disabled bg-disabled-transparent"
-        >
-            Tag Beenden
-        </button>
+        <Button text="Tag Starten" disabled={ status != 'notStarted'} />
+        <Button text="Tag Beenden" disabled={ status != 'working' } />
     </div>
 </div>
