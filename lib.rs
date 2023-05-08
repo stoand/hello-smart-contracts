@@ -95,17 +95,17 @@ mod incrementer {
             self.value += by;
         }
 
-        fn naive_date_time_with_offset(&self, timezone_minute_offset: i32) -> NaiveDateTime {
+        fn naive_date_time(&self) -> NaiveDateTime {
             let now: u64 = self.env().block_timestamp();
-            let time_seconds = (now as i64) / 1000 - (timezone_minute_offset as i64) * 60;
+            let time_seconds = (now as i64) / 1000;
 
             NaiveDateTime::from_timestamp_opt(time_seconds, 0).unwrap()
         }
 
         #[ink(message)]
-        pub fn get_todays_time_range(&self, timezone_minute_offset: i32) -> TimeRange {
-            let account_id = self.env().account_id();
-            let naive_date_time = self.naive_date_time_with_offset(timezone_minute_offset);
+        pub fn get_todays_time_range(&self) -> TimeRange {
+            let account_id = self.env().caller();
+            let naive_date_time = self.naive_date_time();
             let date = Date::from(naive_date_time);
 
             self.ranges.get((account_id, date)).unwrap_or(TimeRange {
@@ -114,18 +114,18 @@ mod incrementer {
             })
         }
 
-        fn update_todays_range(&mut self, range: TimeRange, timezone_minute_offset: i32) {
-            let account_id = self.env().account_id();
-            let naive_date_time = self.naive_date_time_with_offset(timezone_minute_offset);
+        fn update_todays_range(&mut self, range: TimeRange) {
+            let account_id = self.env().caller();
+            let naive_date_time = self.naive_date_time();
             let date = Date::from(naive_date_time);
 
             self.ranges.insert((account_id, date), &range);
         }
 
         #[ink(message)]
-        pub fn start_day(&mut self, timezone_minute_offset: i32) -> bool {
-            let todays_time_range = self.get_todays_time_range(timezone_minute_offset);
-            let naive_date_time = self.naive_date_time_with_offset(timezone_minute_offset);
+        pub fn start_day(&mut self) -> bool {
+            let todays_time_range = self.get_todays_time_range();
+            let naive_date_time = self.naive_date_time();
 
             if todays_time_range.start == None && todays_time_range.end == None {
                 self.update_todays_range(
@@ -133,7 +133,6 @@ mod incrementer {
                         start: Some(Time::from(naive_date_time)),
                         end: None,
                     },
-                    timezone_minute_offset,
                 );
 
                 true
@@ -143,9 +142,9 @@ mod incrementer {
         }
 
         #[ink(message)]
-        pub fn end_day(&mut self, timezone_minute_offset: i32) -> bool {
-            let todays_time_range = self.get_todays_time_range(timezone_minute_offset);
-            let naive_date_time = self.naive_date_time_with_offset(timezone_minute_offset);
+        pub fn end_day(&mut self) -> bool {
+            let todays_time_range = self.get_todays_time_range();
+            let naive_date_time = self.naive_date_time();
 
             if todays_time_range.start != None && todays_time_range.end == None {
                 self.update_todays_range(
@@ -153,7 +152,6 @@ mod incrementer {
                         start: todays_time_range.start,
                         end: Some(Time::from(naive_date_time)),
                     },
-                    timezone_minute_offset,
                 );
 
                 true
