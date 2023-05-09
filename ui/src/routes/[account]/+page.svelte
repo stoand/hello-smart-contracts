@@ -97,7 +97,7 @@
 
         if (timeRange.start) {
             let start = boundToHour(timeRange.start);
-            workRangePixels.start = (start - MIN_WORK_HOUR) * hourOffset;
+            workRangePixels.start = (start - MIN_WORK_HOUR) * hourOffset - 3;
         }
 
         if (timeRange.end) {
@@ -209,7 +209,7 @@
             <div
                 class="bg-white"
                 style="height: 100%; position: absolute; left: {workRangePixels.start}px;
-                width:{workRangePixels.width + 5}px"
+                width:{workRangePixels.width}px"
             />
 
             <div
