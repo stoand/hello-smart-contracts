@@ -3,7 +3,7 @@
     import Button from "./button.svelte";
     import * as Util from "../util";
     import { onMount } from "svelte";
-    import { initContract, gasLimit } from "../contract";
+    import { initContract, gasLimit, injector, account } from "../contract";
 
     const MIN_WORK_HOUR = 8;
     const MAX_WORK_HOUR = 17;
@@ -13,11 +13,12 @@
     let workHours: { hour: number; offset: number }[] = [];
     let workRangePixels = { start: 0, width: 0 };
 
-    let currentTime = '';
+    let currentTime = "";
     let currentTimeOffset = 0;
     let status: "notStarted" | "working" | "done";
     let statusMessage = "";
     let contract: any;
+    let error = '';
 
     let HOUR_COUNT = MAX_WORK_HOUR - MIN_WORK_HOUR;
 
@@ -36,10 +37,11 @@
 
             workHours = workHours;
 
-            contract = await initContract();
+            contract = await initContract($page.params.account);
 
             await reloadContract();
             await reloadTime();
+
             setInterval(reloadTime, 1000);
 
             inited = true;
@@ -62,7 +64,7 @@
 
         let minutes = now.getMinutes().toString();
         if (minutes.length == 1) {
-            minutes = '0' + minutes;
+            minutes = "0" + minutes;
         }
 
         return `${now.getHours()}:${minutes}`;
@@ -109,7 +111,7 @@
 
     async function reloadTime() {
         currentTime = Util.currentTime();
-    
+
         let now = new Date();
         let hours = now.getHours() + now.getMinutes() / 60;
         let hourCount = MAX_WORK_HOUR - MIN_WORK_HOUR;
@@ -119,6 +121,68 @@
 
         if (status === "working") {
             workRangePixels.width = currentTimeOffset - workRangePixels.start;
+        }
+    }
+
+    function handleError(err) {
+        if (err.message.indexOf('1010:') === 0) {
+            error = 'Bitte Tokens auf Konto Überweisen';
+        } else {
+            error = 'Unbekannter Fehler';
+            console.error(err.message);
+        }
+    }
+
+    async function startDay() {
+        let processedResult = false;
+        error = '';
+
+        try {
+            await contract.tx
+                .startDay({
+                    gasLimit,
+                    storageDepositLimit: null,
+                })
+                .signAndSend(
+                    account.address,
+                    { signer: injector.signer },
+                    async (result: any) => {
+                        if (!processedResult && result.dispatchInfo) {
+                            processedResult = true;
+                            await reloadContract();
+                            await reloadTime();
+                        }
+                    }
+                );
+        } catch (err) {
+            handleError(err);
+        }
+    }
+
+    async function endDay() {
+        let processedResult = false;
+        error = '';
+
+        try {
+            await contract.tx
+                .endDay({
+                    gasLimit,
+                    storageDepositLimit: null,
+                })
+                .signAndSend(
+                    account.address,
+                    { signer: injector.signer },
+                    async (result: any) => {
+                        console.log('result', result);
+                        if (!processedResult && result.dispatchInfo) {
+                            processedResult = true;
+                            await reloadContract();
+                            await reloadTime();
+                        }
+                    }
+                );
+        } catch (err) {
+            handleError(err);
         }
     }
 </script>
@@ -145,11 +209,13 @@
             <div
                 class="bg-white"
                 style="height: 100%; position: absolute; left: {-38 +
-                    workRangePixels.start}px; width:{workRangePixels.width == 0 ? 0 : workRangePixels.width + 38}px"
+                    workRangePixels.start}px; width:{workRangePixels.width == 0
+                    ? 0
+                    : workRangePixels.width}px"
             />
 
             <div
-                style="position: absolute; left: {-44 +
+                style="position: absolute; left: {-84 +
                     currentTimeOffset}px; bottom: -50px"
                 class="text-4xl"
             >
@@ -159,7 +225,21 @@
     </div>
 
     <div class="mt-20">
-        <Button text="Tag Starten" disabled={status != "notStarted"} />
-        <Button text="Tag Beenden" disabled={status != "working"} />
+        <Button
+            on:click={startDay}
+            text="Tag Starten"
+            disabled={status != "notStarted"}
+        />
+        <Button
+            on:click={endDay}
+            text="Tag Beenden"
+            disabled={status != "working"}
+        />
     </div>
+
+    {#if error}
+    <div class="mt-20 text-3xl">
+        {error}
+    </div>
+    {/if}
 </div>

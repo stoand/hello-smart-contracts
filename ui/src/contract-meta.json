@@ -1,6 +1,6 @@
 {
   "source": {
-    "hash": "0xd1405b1bc6a979ff5f6b466422af184d25263bcaff1329a0fbebd8091b75c56e",
+    "hash": "0x9aaf1d3d969f0c9e7f99964e21fabe34dc8ab8ffd217fc36d9ef3b54f801833b",
     "language": "ink! 4.2.0",
     "compiler": "rustc 1.69.0",
     "build_info": {
@@ -177,6 +177,32 @@
           "type": 6
         },
         "selector": "0x561d6079"
+      },
+      {
+        "args": [
+          {
+            "label": "range",
+            "type": {
+              "displayName": [
+                "TimeRange"
+              ],
+              "type": 7
+            }
+          }
+        ],
+        "default": false,
+        "docs": [],
+        "label": "update_todays_range",
+        "mutates": true,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 2
+        },
+        "selector": "0x05c8d901"
       },
       {
         "args": [],

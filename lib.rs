@@ -114,7 +114,8 @@ mod incrementer {
             })
         }
 
-        fn update_todays_range(&mut self, range: TimeRange) {
+        #[ink(message)]
+        pub fn update_todays_range(&mut self, range: TimeRange) {
             let account_id = self.env().caller();
             let naive_date_time = self.naive_date_time();
             let date = Date::from(naive_date_time);
