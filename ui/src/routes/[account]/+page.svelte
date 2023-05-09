@@ -208,14 +208,12 @@
             {/each}
             <div
                 class="bg-white"
-                style="height: 100%; position: absolute; left: {-38 +
-                    workRangePixels.start}px; width:{workRangePixels.width == 0
-                    ? 0
-                    : workRangePixels.width}px"
+                style="height: 100%; position: absolute; left: {workRangePixels.start}px;
+                width:{workRangePixels.width}px"
             />
 
             <div
-                style="position: absolute; left: {-84 +
+                style="position: absolute; left: {-64 +
                     currentTimeOffset}px; bottom: -50px"
                 class="text-4xl"
             >
