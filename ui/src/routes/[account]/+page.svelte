@@ -16,6 +16,7 @@
     let currentTime = '';
     let currentTimeOffset = 0;
     let status: "notStarted" | "working" | "done";
+    let statusMessage = "";
     let contract: any;
 
     let HOUR_COUNT = MAX_WORK_HOUR - MIN_WORK_HOUR;
@@ -59,7 +60,7 @@
         now.setUTCHours(Number(bound.hour));
         now.setUTCMinutes(Number(bound.minute));
 
-        let minutes = now.getMilliseconds().toString();
+        let minutes = now.getMinutes().toString();
         if (minutes.length == 1) {
             minutes = '0' + minutes;
         }
@@ -78,14 +79,15 @@
 
         let timeRange = output?.toHuman().Ok;
 
-        console.log(boundToString(timeRange.start));
-
         if (timeRange.start && timeRange.end) {
             status = "done";
+            statusMessage = "Fertig mit Arbeit";
         } else if (timeRange.start) {
             status = "working";
+            statusMessage = `Arbeitet seit ${boundToString(timeRange.start)}`;
         } else {
             status = "notStarted";
+            statusMessage = "Noch nicht Angefangen";
         }
 
         let hourCount = MAX_WORK_HOUR - MIN_WORK_HOUR;
@@ -223,7 +225,7 @@
 <div class="ml-16 mt-10 {inited ? '' : 'opacity-0'}">
     <div class="text-4xl">STATUS</div>
 
-    <div class="text-5xl mt-4">Arbeitet seit 8:22</div>
+    <div class="text-5xl mt-4">{statusMessage}</div>
 
     <div class="p-10">
         <div
@@ -242,8 +244,7 @@
             <div
                 class="bg-white"
                 style="height: 100%; position: absolute; left: {-38 +
-                    workRangePixels.start}px; width:{workRangePixels.width +
-                    38}px"
+                    workRangePixels.start}px; width:{workRangePixels.width == 0 ? 0 : workRangePixels.width + 38}px"
             />
 
             <div
