@@ -209,11 +209,11 @@
             <div
                 class="bg-white"
                 style="height: 100%; position: absolute; left: {workRangePixels.start}px;
-                width:{workRangePixels.width}px"
+                width:{workRangePixels.width + 5}px"
             />
 
             <div
-                style="position: absolute; left: {-64 +
+                style="position: absolute; left: {-44 +
                     currentTimeOffset}px; bottom: -50px"
                 class="text-4xl"
             >
