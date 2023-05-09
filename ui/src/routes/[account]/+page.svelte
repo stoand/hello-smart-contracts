@@ -13,7 +13,7 @@
     let workHours: { hour: number; offset: number }[] = [];
     let workRangePixels = { start: 0, width: 0 };
 
-    let currentTime = Util.currentTime();
+    let currentTime = '';
     let currentTimeOffset = 0;
     let status: "notStarted" | "working" | "done";
     let contract: any;
@@ -45,15 +45,26 @@
         })();
     }
 
-    type Bound = { hour: string, minute: string };
+    type Bound = { hour: string; minute: string };
 
     function boundToHour(bound: Bound) {
-        return Number(bound.hour) + (Number(bound.minute) - (new Date()).getTimezoneOffset()) / 60;
+        let now = new Date();
+        now.setUTCHours(Number(bound.hour));
+        now.setUTCMinutes(Number(bound.minute));
+        return now.getHours() + now.getMinutes() / 60;
     }
 
     function boundToString(bound: Bound) {
         let now = new Date();
-        now.setUTCHours(bound.hour);
+        now.setUTCHours(Number(bound.hour));
+        now.setUTCMinutes(Number(bound.minute));
+
+        let minutes = now.getMilliseconds().toString();
+        if (minutes.length == 1) {
+            minutes = '0' + minutes;
+        }
+
+        return `${now.getHours()}:${minutes}`;
     }
 
     async function reloadContract() {
@@ -67,6 +78,8 @@
 
         let timeRange = output?.toHuman().Ok;
 
+        console.log(boundToString(timeRange.start));
+
         if (timeRange.start && timeRange.end) {
             status = "done";
         } else if (timeRange.start) {
@@ -76,15 +89,25 @@
         }
 
         let hourCount = MAX_WORK_HOUR - MIN_WORK_HOUR;
-        let hourOffset = (barContainer?.scrollWidth || 0) / hourCount;
+        let hourOffset = barContainer.scrollWidth / hourCount;
 
         if (timeRange.start) {
             let start = boundToHour(timeRange.start);
             workRangePixels.start = (start - MIN_WORK_HOUR) * hourOffset;
         }
+
+        if (timeRange.end) {
+            let end = boundToHour(timeRange.end);
+            let offset = (end - MIN_WORK_HOUR) * hourOffset;
+            workRangePixels.width = offset - workRangePixels.start;
+        }
     }
 
-    function reloadTime() {
+    let x = 0;
+
+    async function reloadTime() {
+        currentTime = Util.currentTime();
+    
         let now = new Date();
         let hours = now.getHours() + now.getMinutes() / 60;
         let hourCount = MAX_WORK_HOUR - MIN_WORK_HOUR;
@@ -93,7 +116,6 @@
         currentTimeOffset = (hours - MIN_WORK_HOUR) * hourOffset;
 
         if (status === "working") {
-            // console.log(now.getMinutes());
             workRangePixels.width = currentTimeOffset - workRangePixels.start;
         }
     }
