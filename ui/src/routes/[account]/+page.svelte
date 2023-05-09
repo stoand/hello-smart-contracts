@@ -20,22 +20,41 @@
 
     let HOUR_COUNT = MAX_WORK_HOUR - MIN_WORK_HOUR;
 
-    onMount(async () => {
-        let hourOffset = barContainer.scrollWidth / HOUR_COUNT;
+    let inited = false;
 
-        for (let i = MIN_WORK_HOUR; i <= MAX_WORK_HOUR; i++) {
-            workHours.push({
-                hour: i,
-                offset: (i - MIN_WORK_HOUR) * hourOffset,
-            });
-        }
+    $: if (barContainer && !inited) {
+        (async function () {
+            let hourOffset = barContainer.scrollWidth / HOUR_COUNT;
 
-        contract = await initContract();
+            for (let i = MIN_WORK_HOUR; i <= MAX_WORK_HOUR; i++) {
+                workHours.push({
+                    hour: i,
+                    offset: (i - MIN_WORK_HOUR) * hourOffset,
+                });
+            }
 
-        reloadContract();
-        reloadTime();
-        setInterval(reloadTime, 1000);
-    });
+            workHours = workHours;
+
+            contract = await initContract();
+
+            await reloadContract();
+            await reloadTime();
+            setInterval(reloadTime, 1000);
+
+            inited = true;
+        })();
+    }
+
+    type Bound = { hour: string, minute: string };
+
+    function boundToHour(bound: Bound) {
+        return Number(bound.hour) + (Number(bound.minute) - (new Date()).getTimezoneOffset()) / 60;
+    }
+
+    function boundToString(bound: Bound) {
+        let now = new Date();
+        now.setUTCHours(bound.hour);
+    }
 
     async function reloadContract() {
         let { output } = await contract.query.getTodaysTimeRange(
@@ -56,27 +75,30 @@
             status = "notStarted";
         }
 
-        // if (timeRange.start) {
-            
-        // }
+        let hourCount = MAX_WORK_HOUR - MIN_WORK_HOUR;
+        let hourOffset = (barContainer?.scrollWidth || 0) / hourCount;
+
+        if (timeRange.start) {
+            let start = boundToHour(timeRange.start);
+            workRangePixels.start = (start - MIN_WORK_HOUR) * hourOffset;
+        }
     }
 
     function reloadTime() {
         let now = new Date();
-        let hours = now.getHours()// + (now.getMinutes() / 60);
-        console.log(now.getMinutes());
+        let hours = now.getHours() + now.getMinutes() / 60;
         let hourCount = MAX_WORK_HOUR - MIN_WORK_HOUR;
         let hourOffset = barContainer.scrollWidth / hourCount;
 
         currentTimeOffset = (hours - MIN_WORK_HOUR) * hourOffset;
 
         if (status === "working") {
-            console.log(now.getMinutes());
+            // console.log(now.getMinutes());
             workRangePixels.width = currentTimeOffset - workRangePixels.start;
         }
     }
 
-    //     barInited = true;
+    //     inited = true;
 
     //     for (let i = MIN_WORK_HOUR; i <= MAX_WORK_HOUR; i++) {
     //         workHours.push({
@@ -176,7 +198,7 @@
     // init();
 </script>
 
-<div class="ml-16 mt-10">
+<div class="ml-16 mt-10 {inited ? '' : 'opacity-0'}">
     <div class="text-4xl">STATUS</div>
 
     <div class="text-5xl mt-4">Arbeitet seit 8:22</div>
