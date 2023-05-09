@@ -4,6 +4,7 @@ export default {
   theme: {
     colors: {
         white: '#fff',
+        'transparent': 'rgba(255,255,255, 0.3)',
         'white-transparent': 'rgba(255,255,255, 0.3)',
         'white-transparent2': 'rgba(255,255,255, 0.5)',
         'disabled': 'rgba(120,120,120, 1)',
