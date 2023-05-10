@@ -56,6 +56,17 @@ mod incrementer {
         end: Option<Time>,
     }
 
+    #[derive(scale::Encode, scale::Decode, Clone, Default, Copy)]
+    #[cfg_attr(
+        feature = "std",
+        derive(Debug, PartialEq, Eq, scale_info::TypeInfo, StorageLayout)
+    )]
+    pub struct Workday {
+        weekday: u8,
+        date: Date,
+        time_range: TimeRange,
+    }
+
     /// Defines the storage of your contract.
     /// Add new fields to the below struct in order
     /// to add new static storage fields to your contract.
@@ -100,31 +111,36 @@ mod incrementer {
         }
 
         #[ink(message)]
-        pub fn get_week_time_ranges(
-            &self,
-            account_id: AccountId,
-            week_depth: u64,
-        ) -> [TimeRange; 5] {
+        pub fn get_week_workdays(&self, account_id: AccountId, week_depth: u64) -> [Workday; 5] {
             let mut naive_date_time = self.naive_date_time();
             naive_date_time = naive_date_time - Days::new(week_depth * 7);
 
-            let mut time_ranges: [TimeRange; 5] = Default::default();
+            let mut workdays: [Workday; 5] = Default::default();
 
             let mut day_index = 0;
 
             for _ in 0..7 {
-                match naive_date_time.weekday() {
+                let weekday = naive_date_time.weekday();
+                match weekday {
                     Weekday::Sat | Weekday::Sun => {}
                     _ => {
-                        let key = (account_id, Date::from(naive_date_time));
-                        time_ranges[day_index] = self.ranges.get(key).unwrap_or(Default::default());
+                        let date = Date::from(naive_date_time);
+                        let time_range = self
+                            .ranges
+                            .get((account_id, date))
+                            .unwrap_or(Default::default());
+                        workdays[day_index] = Workday {
+                            date,
+                            time_range,
+                            weekday: weekday.num_days_from_sunday() as u8,
+                        };
                         day_index += 1;
                     }
                 }
                 naive_date_time = naive_date_time - Days::new(1);
             }
 
-            time_ranges
+            workdays
         }
 
         #[ink(message)]
@@ -133,7 +149,7 @@ mod incrementer {
             let date = Date::from(naive_date_time);
             self.update_range(date, range);
         }
-        
+
         #[ink(message)]
         pub fn update_range(&mut self, date: Date, range: TimeRange) {
             let account_id = self.env().caller();
