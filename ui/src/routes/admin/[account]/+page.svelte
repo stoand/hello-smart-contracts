@@ -38,7 +38,7 @@
 
 </script>
 
-<AccountSearch />
+<AccountSearch account={accountId} />
 
 <div class="ml-16 mt-16 {inited ? '' : 'opacity-0'}">
     <div class="flex justify-between">

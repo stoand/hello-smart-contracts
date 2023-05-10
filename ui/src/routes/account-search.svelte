@@ -1,5 +1,5 @@
 <script lang="ts">
-    let account = '';
+    export let account = '';
 </script>
 
 <div class="ml-16">
