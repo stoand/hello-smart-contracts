@@ -2,20 +2,31 @@
     import AccountSearch from "../../account-search.svelte";
     import AccountIcon from "../../account-icon.svelte";
     import { page } from "$app/stores";
-    import { initContract, account } from "../../contract";
+    import { initContract, account, gasLimit } from "../../contract";
 
     let accountId = $page.params.account;
-    let accountName;
+    let accountName: string;
 
     let inited = false;
     let firstBar: any;
 
     async function init() {
-       await initContract(accountId);
+       let contract = await initContract(accountId);
 
        accountName = account.meta.name;
 
-       console.log(account);
+        let { output } = await contract.query.getWeekTimeRanges(
+            $page.params.account,
+            {
+                gasLimit,
+                storageDepositLimit: null,
+            },
+            accountId, 0
+        );
+
+        let timeRanges = output?.toHuman().Ok;
+
+        console.log(timeRanges);
 
        inited = true;
     }

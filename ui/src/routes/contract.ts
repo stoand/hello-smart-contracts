@@ -4,7 +4,7 @@ import { keyring } from "@polkadot/ui-keyring";
 import { ContractPromise } from "@polkadot/api-contract";
 
 const ALEPH_ZERO_TESTNET_WS = "wss://ws.test.azero.dev";
-const CONTRACT = "5CgTDMShNYvkDqkDzfhgMjshZe7JeD8ahvtusd9u9EJk9rhy";
+const CONTRACT = "5ErZ1mV1564CdyGoGCEtUBnAcHpm4aXcDGNAkApos3aLjoPy";
 import CONTRACT_META from "../contract-meta.json";
 
 export let gasLimit: any;
