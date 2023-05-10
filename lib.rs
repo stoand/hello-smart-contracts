@@ -2,11 +2,11 @@
 
 #[ink::contract]
 mod incrementer {
-    use chrono::{Datelike, NaiveDateTime, Timelike};
+    use chrono::{Datelike, Days, NaiveDateTime, Timelike, Weekday};
     use ink::storage::traits::StorageLayout;
     use ink::storage::Mapping;
 
-    #[derive(scale::Encode, scale::Decode, Clone, Default, PartialEq)]
+    #[derive(scale::Encode, scale::Decode, Clone, Default, PartialEq, Copy)]
     #[cfg_attr(
         feature = "std",
         derive(Debug, Eq, scale_info::TypeInfo, StorageLayout)
@@ -27,7 +27,7 @@ mod incrementer {
         }
     }
 
-    #[derive(scale::Encode, scale::Decode, Clone, Default, PartialEq)]
+    #[derive(scale::Encode, scale::Decode, Clone, Default, PartialEq, Copy)]
     #[cfg_attr(
         feature = "std",
         derive(Debug, Eq, scale_info::TypeInfo, StorageLayout)
@@ -46,7 +46,7 @@ mod incrementer {
         }
     }
 
-    #[derive(scale::Encode, scale::Decode, Clone, Default)]
+    #[derive(scale::Encode, scale::Decode, Clone, Default, Copy)]
     #[cfg_attr(
         feature = "std",
         derive(Debug, PartialEq, Eq, scale_info::TypeInfo, StorageLayout)
@@ -61,17 +61,14 @@ mod incrementer {
     /// to add new static storage fields to your contract.
     #[ink(storage)]
     pub struct Incrementer {
-        /// Stores a single `bool` value on the storage.
-        value: i32,
         ranges: Mapping<(AccountId, Date), TimeRange>,
     }
 
     impl Incrementer {
         /// Constructor that initializes the `bool` value to the given `init_value`.
         #[ink(constructor)]
-        pub fn new(init_value: i32) -> Self {
+        pub fn new() -> Self {
             Self {
-                value: init_value,
                 ranges: Mapping::new(),
             }
         }
@@ -81,18 +78,7 @@ mod incrementer {
         /// Constructors can delegate to other constructors.
         #[ink(constructor)]
         pub fn default() -> Self {
-            Self::new(0)
-        }
-
-        /// Simply returns the current value of our `bool`.
-        #[ink(message)]
-        pub fn get(&self) -> i32 {
-            self.value
-        }
-
-        #[ink(message)]
-        pub fn inc(&mut self, by: i32) {
-            self.value += by;
+            Self::new()
         }
 
         fn naive_date_time(&self) -> NaiveDateTime {
@@ -108,18 +94,49 @@ mod incrementer {
             let naive_date_time = self.naive_date_time();
             let date = Date::from(naive_date_time);
 
-            self.ranges.get((account_id, date)).unwrap_or(TimeRange {
-                start: None,
-                end: None,
-            })
+            self.ranges
+                .get((account_id, date))
+                .unwrap_or(Default::default())
+        }
+
+        #[ink(message)]
+        pub fn get_week_time_ranges(
+            &self,
+            account_id: AccountId,
+            week_depth: u64,
+        ) -> [TimeRange; 5] {
+            let mut naive_date_time = self.naive_date_time();
+            naive_date_time = naive_date_time - Days::new(week_depth * 7);
+
+            let mut time_ranges: [TimeRange; 5] = Default::default();
+
+            let mut day_index = 0;
+
+            for _ in 0..7 {
+                match naive_date_time.weekday() {
+                    Weekday::Sat | Weekday::Sun => {}
+                    _ => {
+                        let key = (account_id, Date::from(naive_date_time));
+                        time_ranges[day_index] = self.ranges.get(key).unwrap_or(Default::default());
+                        day_index += 1;
+                    }
+                }
+                naive_date_time = naive_date_time - Days::new(1);
+            }
+
+            time_ranges
         }
 
         #[ink(message)]
         pub fn update_todays_range(&mut self, range: TimeRange) {
-            let account_id = self.env().caller();
             let naive_date_time = self.naive_date_time();
             let date = Date::from(naive_date_time);
-
+            self.update_range(date, range);
+        }
+        
+        #[ink(message)]
+        pub fn update_range(&mut self, date: Date, range: TimeRange) {
+            let account_id = self.env().caller();
             self.ranges.insert((account_id, date), &range);
         }
 
@@ -129,12 +146,10 @@ mod incrementer {
             let naive_date_time = self.naive_date_time();
 
             if todays_time_range.start == None && todays_time_range.end == None {
-                self.update_todays_range(
-                    TimeRange {
-                        start: Some(Time::from(naive_date_time)),
-                        end: None,
-                    },
-                );
+                self.update_todays_range(TimeRange {
+                    start: Some(Time::from(naive_date_time)),
+                    end: None,
+                });
 
                 true
             } else {
@@ -148,12 +163,10 @@ mod incrementer {
             let naive_date_time = self.naive_date_time();
 
             if todays_time_range.start != None && todays_time_range.end == None {
-                self.update_todays_range(
-                    TimeRange {
-                        start: todays_time_range.start,
-                        end: Some(Time::from(naive_date_time)),
-                    },
-                );
+                self.update_todays_range(TimeRange {
+                    start: todays_time_range.start,
+                    end: Some(Time::from(naive_date_time)),
+                });
 
                 true
             } else {
