@@ -12,14 +12,13 @@
     let inited = false;
     let firstBar: any;
     let workdays: any = [];
+    let contract: any;
 
     let daysOfWeek = ["Son", "Mon", "Dien", "Mitt", "Donn", "Frei", "Sam"];
 
-    async function init() {
-        let contract = await initContract(accountId);
+    let workdayOffset = 0;
 
-        accountName = account.meta.name;
-
+    async function loadWorkdays() {
         let { output } = await contract.query.getWeekWorkdays(
             $page.params.account,
             {
@@ -27,12 +26,20 @@
                 storageDepositLimit: null,
             },
             accountId,
-            0
+            workdayOffset
         );
 
-        workdays = output?.toHuman()?.Ok;
+        workdays = workdays.concat(output?.toHuman()?.Ok);
 
-        console.log(workdays);
+        workdayOffset += 1;
+    }
+
+    async function init() {
+        contract = await initContract(accountId);
+
+        accountName = account.meta.name;
+
+        await loadWorkdays();
 
         let timeRangeToday = workdays[0].timeRange;
 
@@ -55,7 +62,7 @@
     function hoursDiff(timeRange: any) {
         if (timeRange.start) {
             let end = new Date();
-            
+
             if (timeRange.end) {
                 end.setHours(timeRange.end.hour);
             }
@@ -63,12 +70,12 @@
             let hours = end.getHours() - timeRange.start.hour;
 
             if (hours > 0) {
-                return hours + 'H';
+                return hours + "H";
             } else {
-                return '';
+                return "";
             }
         } else {
-            return '';
+            return "";
         }
     }
 
@@ -80,10 +87,9 @@
                 end.setUTCMinutes(timeRange.end.minute);
             }
 
-            return (end.getMinutes() - timeRange.start.minute) + 'M';
-            
+            return end.getMinutes() - timeRange.start.minute + "M";
         } else {
-            return '';
+            return "";
         }
     }
 
@@ -95,7 +101,7 @@
 
 <AccountSearch account={accountId} />
 
-<div class="ml-16 mt-16 {inited ? '' : 'opacity-0'}">
+<div class="ml-16 mt-16 mb-16 {inited ? '' : 'opacity-0'}">
     <div class="flex justify-between">
         <div class="flex">
             <AccountIcon {accountId} />
@@ -121,12 +127,24 @@
                                 >{daysOfWeek[workday.weekday]}</td
                             >
                             <td class="pt-10 pr-8">todo progress bar</td>
-                            <td class="pt-10 pr-6">{hoursDiff(workday.timeRange)}</td>
-                            <td class="pt-10 pr-4">{minutesDiff(workday.timeRange)}</td>
+                            <td class="pt-10 pr-6"
+                                >{hoursDiff(workday.timeRange)}</td
+                            >
+                            <td class="pt-10 pr-4"
+                                >{minutesDiff(workday.timeRange)}</td
+                            >
                         </tr>
                     {/each}
                 </tbody>
             </table>
         </div>
+    </div>
+
+    <div class="mt-16 mr-16">
+        <button
+            on:click={loadWorkdays}
+            class="border-solid border-[1px] text-3xl p-6 rounded-3xl rounded
+        bg-white-transparent border-white-transparent2">Mehr Laden</button
+        >
     </div>
 </div>
