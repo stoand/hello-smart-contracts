@@ -3,9 +3,11 @@
     import AccountIcon from "../../account-icon.svelte";
     import { page } from "$app/stores";
     import { initContract, account, gasLimit } from "../../contract";
+    import * as Util from "../../util";
 
     let accountId = $page.params.account;
     let accountName: string;
+    let statusMessage = '';
 
     let inited = false;
     let firstBar: any;
@@ -15,7 +17,7 @@
 
        accountName = account.meta.name;
 
-        let { output } = await contract.query.getWeekTimeRanges(
+        let { output } = await contract.query.getWeekWorkdays(
             $page.params.account,
             {
                 gasLimit,
@@ -24,9 +26,20 @@
             accountId, 0
         );
 
-        let timeRanges = output?.toHuman().Ok;
+        let workdays = output?.toHuman()?.Ok;
+       
+        let timeRangeToday = workdays[0].timeRange;
 
-        console.log(timeRanges);
+        if (timeRangeToday.start && timeRangeToday.end) {
+            status = "done";
+            statusMessage = "Heute Fertig mit Arbeit";
+        } else if (timeRangeToday.start) {
+            status = "working";
+            statusMessage = `Arbeitet Heute seit ${Util.boundToString(timeRangeToday.start)}`;
+        } else {
+            status = "notStarted";
+            statusMessage = "Heute Noch nicht Angefangen";
+        }
 
        inited = true;
     }
@@ -46,7 +59,7 @@
             <AccountIcon {accountId}/>
             <div class="text-3xl pt-4">{accountName}</div>
         </div>
-        <div class="text-4xl pt-2">Arbeitet...</div> 
+        <div class="text-4xl pt-2">{statusMessage}</div> 
         <div class="grow-1"></div>
         <div class="grow-1"></div>
     </div>

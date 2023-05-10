@@ -1,6 +1,6 @@
 {
   "source": {
-    "hash": "0xfc3a6a8a648717acf2730af6d7803ff47eff8ec5bd5be837d61f06b0ab025759",
+    "hash": "0x873faa02b192d41dabb84bf274a7abfb70640b94f9f519f3388910ed1de90538",
     "language": "ink! 4.2.0",
     "compiler": "rustc 1.69.0",
     "build_info": {
@@ -147,7 +147,7 @@
         ],
         "default": false,
         "docs": [],
-        "label": "get_week_time_ranges",
+        "label": "get_week_workdays",
         "mutates": false,
         "payable": false,
         "returnType": {
@@ -157,7 +157,7 @@
           ],
           "type": 11
         },
-        "selector": "0xbc38c183"
+        "selector": "0xda85d491"
       },
       {
         "args": [
@@ -184,22 +184,6 @@
           "type": 1
         },
         "selector": "0x05c8d901"
-      },
-      {
-        "args": [],
-        "default": false,
-        "docs": [],
-        "label": "todays_date",
-        "mutates": false,
-        "payable": false,
-        "returnType": {
-          "displayName": [
-            "ink",
-            "MessageResult"
-          ],
-          "type": 13
-        },
-        "selector": "0xa5d25791"
       },
       {
         "args": [
@@ -685,7 +669,7 @@
         "def": {
           "array": {
             "len": 5,
-            "type": 5
+            "type": 13
           }
         }
       }
@@ -694,41 +678,30 @@
       "id": 13,
       "type": {
         "def": {
-          "variant": {
-            "variants": [
+          "composite": {
+            "fields": [
               {
-                "fields": [
-                  {
-                    "type": 14
-                  }
-                ],
-                "index": 0,
-                "name": "Ok"
+                "name": "weekday",
+                "type": 0,
+                "typeName": "u8"
               },
               {
-                "fields": [
-                  {
-                    "type": 3
-                  }
-                ],
-                "index": 1,
-                "name": "Err"
+                "name": "date",
+                "type": 14,
+                "typeName": "Date"
+              },
+              {
+                "name": "time_range",
+                "type": 5,
+                "typeName": "TimeRange"
               }
             ]
           }
         },
-        "params": [
-          {
-            "name": "T",
-            "type": 14
-          },
-          {
-            "name": "E",
-            "type": 3
-          }
-        ],
         "path": [
-          "Result"
+          "hello_smart_contracts",
+          "incrementer",
+          "Workday"
         ]
       }
     },

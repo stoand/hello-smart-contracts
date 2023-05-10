@@ -48,28 +48,6 @@
         })();
     }
 
-    type Bound = { hour: string; minute: string };
-
-    function boundToHour(bound: Bound) {
-        let now = new Date();
-        now.setUTCHours(Number(bound.hour));
-        now.setUTCMinutes(Number(bound.minute));
-        return now.getHours() + now.getMinutes() / 60;
-    }
-
-    function boundToString(bound: Bound) {
-        let now = new Date();
-        now.setUTCHours(Number(bound.hour));
-        now.setUTCMinutes(Number(bound.minute));
-
-        let minutes = now.getMinutes().toString();
-        if (minutes.length == 1) {
-            minutes = "0" + minutes;
-        }
-
-        return `${now.getHours()}:${minutes}`;
-    }
-
     async function reloadContract() {
         let { output } = await contract.query.getTodaysTimeRange(
             $page.params.account,
@@ -86,7 +64,7 @@
             statusMessage = "Fertig mit Arbeit";
         } else if (timeRange.start) {
             status = "working";
-            statusMessage = `Arbeitet seit ${boundToString(timeRange.start)}`;
+            statusMessage = `Arbeitet seit ${Util.boundToString(timeRange.start)}`;
         } else {
             status = "notStarted";
             statusMessage = "Noch nicht Angefangen";
@@ -96,12 +74,12 @@
         let hourOffset = barContainer.scrollWidth / hourCount;
 
         if (timeRange.start) {
-            let start = boundToHour(timeRange.start);
+            let start = Util.boundToHour(timeRange.start);
             workRangePixels.start = (start - MIN_WORK_HOUR) * hourOffset - 3;
         }
 
         if (timeRange.end) {
-            let end = boundToHour(timeRange.end);
+            let end = Util.boundToHour(timeRange.end);
             let offset = (end - MIN_WORK_HOUR) * hourOffset;
             workRangePixels.width = offset - workRangePixels.start;
         }
