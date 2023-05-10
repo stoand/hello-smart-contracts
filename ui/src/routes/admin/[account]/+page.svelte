@@ -14,6 +14,8 @@
     let workdays: any = [];
     let contract: any;
 
+    let status = 'loading';
+
     let daysOfWeek = ["Son", "Mon", "Dien", "Mitt", "Donn", "Frei", "Sam"];
 
     let workdayOffset = 0;
@@ -37,26 +39,32 @@
     async function init() {
         contract = await initContract(accountId);
 
-        accountName = account.meta.name;
+        console.log("acc", account);
 
-        await loadWorkdays();
-
-        let timeRangeToday = workdays[0].timeRange;
-
-        if (timeRangeToday.start && timeRangeToday.end) {
-            status = "done";
-            statusMessage = "Heute Fertig mit Arbeit";
-        } else if (timeRangeToday.start) {
-            status = "working";
-            statusMessage = `Arbeitet Heute seit ${Util.boundToString(
-                timeRangeToday.start
-            )}`;
+        if (!account) {
+            status = 'invalidAccount';
         } else {
-            status = "notStarted";
-            statusMessage = "Heute Noch nicht Angefangen";
-        }
+            accountName = account.meta.name;
 
-        inited = true;
+            await loadWorkdays();
+
+            let timeRangeToday = workdays[0].timeRange;
+
+            if (timeRangeToday.start && timeRangeToday.end) {
+                status = "done";
+                statusMessage = "Heute Fertig mit Arbeit";
+            } else if (timeRangeToday.start) {
+                status = "working";
+                statusMessage = `Arbeitet Heute seit ${Util.boundToString(
+                    timeRangeToday.start
+                )}`;
+            } else {
+                status = "notStarted";
+                statusMessage = "Heute Noch nicht Angefangen";
+            }
+
+            status = 'loaded';
+        }
     }
 
     function hoursDiff(timeRange: any) {
@@ -93,15 +101,19 @@
         }
     }
 
+    page.subscribe(() => {
+        init();
+    });
+
     /// $: if (!inited && firstBar) {
     $: if (!inited) {
-        init();
+        // init();
     }
 </script>
 
 <AccountSearch account={accountId} />
 
-<div class="ml-16 mt-16 mb-16 {inited ? '' : 'opacity-0'}">
+<div class="ml-16 mt-16 mb-16 {status == 'loaded' ? '' : 'opacity-0'}">
     <div class="flex justify-between">
         <div class="flex">
             <AccountIcon {accountId} />
