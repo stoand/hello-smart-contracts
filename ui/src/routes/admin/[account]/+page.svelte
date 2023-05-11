@@ -6,7 +6,7 @@
     import { initContract, account, gasLimit } from "../../contract";
     import * as Util from "../../util";
 
-    let accountId = $page.params.account;
+    $: accountId = $page.params.account;
     let accountName: string;
     let statusMessage = "";
 
@@ -40,9 +40,11 @@
     }
 
     async function init() {
-        contract = await initContract(accountId);
+        contract = await initContract($page.params.account);
 
         console.log('initing');
+
+        console.log('acc', accountId);
 
         if (!account) {
             status = "invalidAccount";
@@ -104,7 +106,7 @@
         }
     }
 
-    page.subscribe(() => {
+    page.subscribe(params => {
         init();
     });
 </script>
