@@ -1,6 +1,6 @@
 <script lang="ts">
     import { polkadotIcon } from "@polkadot/ui-shared";
-    
+
     export let accountId: string;
 </script>
 

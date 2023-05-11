@@ -20,8 +20,8 @@
     let workdayOffset = 0;
 
     async function loadWorkdays() {
-        console.log('loading acc id', accountId);
-    
+        console.log("loading acc id", accountId);
+
         let { output } = await contract.query.getWeekWorkdays(
             $page.params.account,
             {
@@ -42,6 +42,7 @@
     async function init() {
         contract = await initContract($page.params.account);
         workdays = [];
+        workdayOffset = 0;
 
         if (!account) {
             status = "invalidAccount";
@@ -110,23 +111,25 @@
         }
     }
 
-    page.subscribe(params => {
+    page.subscribe((params) => {
         init();
     });
 </script>
 
 <AccountSearch account={accountId} />
 
-{#if status == 'invalidAccount'}
-        <div class="text-4xl mt-16 ml-16">Falsches Konto Id</div>
+{#if status == "invalidAccount"}
+    <div class="text-4xl mt-16 ml-16">Falsches Konto Id</div>
 {/if}
 
 <div class="ml-16 mt-16 mb-16 {status == 'loaded' ? '' : 'opacity-0'}">
     <div class="flex justify-between">
-        <div class="flex">
-            <AccountIcon {accountId} />
-            <div class="text-3xl pt-4">{accountName}</div>
-        </div>
+        {#if status == 'loaded' && account !== undefined}
+            <div class="flex">
+                <AccountIcon accountId={accountId} />
+                <div class="text-3xl pt-4">{accountName}</div>
+            </div>
+        {/if}
         <div class="text-4xl pt-2">{statusMessage}</div>
         <div class="grow-1" />
         <div class="grow-1" />
@@ -138,9 +141,9 @@
                 <tbody>
                     {#each workdays as workday}
                         {#if workday.first}
-                        <tr>
-                            <td> <br> <br> </td>
-                        </tr>
+                            <tr>
+                                <td> <br /> <br /> </td>
+                            </tr>
                         {/if}
                         <tr class="text-3xl">
                             <td class="pt-10 pr-2 text-right"
@@ -152,7 +155,11 @@
                                 >{daysOfWeek[workday.weekday]}</td
                             >
                             <td class="pt-11 pr-8 w-full h-8">
-                                <ProgressBar showTimes={workday.first == true} showCurrentTime={false} timeRange={workday.timeRange} />
+                                <ProgressBar
+                                    showTimes={workday.first == true}
+                                    showCurrentTime={false}
+                                    timeRange={workday.timeRange}
+                                />
                             </td>
                             <td class="pt-10 pr-6"
                                 >{hoursDiff(workday.timeRange)}</td
