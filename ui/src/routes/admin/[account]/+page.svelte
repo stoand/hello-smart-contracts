@@ -1,6 +1,7 @@
 <script lang="ts">
     import AccountSearch from "../../account-search.svelte";
     import AccountIcon from "../../account-icon.svelte";
+    import ProgressBar from "../../progress-bar.svelte";
     import { page } from "$app/stores";
     import { initContract, account, gasLimit } from "../../contract";
     import * as Util from "../../util";
@@ -14,7 +15,7 @@
     let workdays: any = [];
     let contract: any;
 
-    let status = 'loading';
+    let status = "loading";
 
     let daysOfWeek = ["Son", "Mon", "Dien", "Mitt", "Donn", "Frei", "Sam"];
 
@@ -31,7 +32,9 @@
             workdayOffset
         );
 
-        workdays = workdays.concat(output?.toHuman()?.Ok);
+        let newWorkdays = output?.toHuman()?.Ok;
+        newWorkdays[0].first = true;
+        workdays = workdays.concat(newWorkdays);
 
         workdayOffset += 1;
     }
@@ -42,7 +45,7 @@
         console.log("acc", account);
 
         if (!account) {
-            status = 'invalidAccount';
+            status = "invalidAccount";
         } else {
             accountName = account.meta.name;
 
@@ -63,7 +66,7 @@
                 statusMessage = "Heute Noch nicht Angefangen";
             }
 
-            status = 'loaded';
+            status = "loaded";
         }
     }
 
@@ -104,11 +107,6 @@
     page.subscribe(() => {
         init();
     });
-
-    /// $: if (!inited && firstBar) {
-    $: if (!inited) {
-        // init();
-    }
 </script>
 
 <AccountSearch account={accountId} />
@@ -129,6 +127,11 @@
             <table class="w-full">
                 <tbody>
                     {#each workdays as workday}
+                        {#if workday.first}
+                        <tr>
+                            <td> <br> <br> </td>
+                        </tr>
+                        {/if}
                         <tr class="text-3xl">
                             <td class="pt-10 pr-2 text-right"
                                 >{workday.date.day}</td
@@ -138,18 +141,13 @@
                             <td class="pt-10 pr-4 font-bold"
                                 >{daysOfWeek[workday.weekday]}</td
                             >
-                            <td class="pt-10 pr-8 w-full">
-                                <div
-                                    class="relative mt-16 mr-16 h-20 border-white border-solid border-[1px]"
-                                >
-                                    
-                                </div>
-                                
+                            <td class="pt-11 pr-8 w-full h-8">
+                                <ProgressBar showTimes={workday.first == true} showCurrentTime={false} timeRange={workday.timeRange} />
                             </td>
                             <td class="pt-10 pr-6"
                                 >{hoursDiff(workday.timeRange)}</td
                             >
-                            <td class="pt-10 pr-4"
+                            <td class="pt-10 pr-8"
                                 >{minutesDiff(workday.timeRange)}</td
                             >
                         </tr>

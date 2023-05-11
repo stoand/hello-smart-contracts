@@ -6,6 +6,10 @@
         end: { hour: string; minute: string };
     };
 
+    export let showTimes = true;
+    export let showCurrentTime = true;
+    export let height : 'tall' | 'short' = 'tall';
+
     let workHours: { hour: number; offset: number }[] = [];
     let workRangePixels = { start: 0, width: 0 };
     let currentTimeOffset: number;
@@ -31,7 +35,7 @@
         currentTimeOffset = (hours - MIN_WORK_HOUR) * hourOffset;
         currentTime = utilCurrentTime();
 
-        if (workHours.length == 0) {
+        if (workHours.length == 0 && showTimes) {
             let workHoursAcc = [];
 
             for (let i = MIN_WORK_HOUR; i <= MAX_WORK_HOUR; i++) {
@@ -61,8 +65,8 @@
 </script>
 
 <div
-    bind:this={barContainer}
-    class="relative mt-16 mr-16 h-20 border-white border-solid border-[1px]"
+    bind:this={barContainer} style="height: inherit"
+    class="relative border-white border-solid border-[1px]"
 >
     {#each workHours as workHour}
         <div
@@ -79,6 +83,7 @@
         width:{workRangePixels.width}px"
     />
 
+    {#if showCurrentTime}
     <div
         style="position: absolute; left: {-44 +
             currentTimeOffset}px; bottom: -50px"
@@ -86,4 +91,5 @@
     >
         {currentTime}
     </div>
+    {/if}
 </div>

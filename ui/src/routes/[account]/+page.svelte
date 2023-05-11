@@ -115,7 +115,7 @@
 
     <div class="text-5xl mt-4">{statusMessage}</div>
 
-    <div class="p-10">
+    <div class="p-10 mt-16 mr-16 h-20">
         <ProgressBar {timeRange}/>
     </div>
 
