@@ -6,7 +6,6 @@
     import { initContract, account, gasLimit } from "../../contract";
     import * as Util from "../../util";
 
-    $: accountId = $page.params.account;
     let accountName: string;
     let statusMessage = "";
 
@@ -28,7 +27,7 @@
                 gasLimit,
                 storageDepositLimit: null,
             },
-            accountId,
+            $page.params.account,
             workdayOffset
         );
 
@@ -103,12 +102,12 @@
         }
     }
 
-    page.subscribe(params => {
+    page.subscribe(_ => {
         init();
     });
 </script>
 
-<AccountSearch account={accountId} />
+<AccountSearch account={$page.params.account} />
 
 {#if status == 'invalidAccount'}
         <div class="text-4xl mt-16 ml-16">Falsches Konto Id</div>
@@ -117,7 +116,7 @@
 <div class="ml-16 mt-16 mb-16 {status == 'loaded' ? '' : 'opacity-0'}">
     <div class="flex justify-between">
         <div class="flex">
-            <AccountIcon {accountId} />
+            <AccountIcon accountId={$page.params.account} />
             <div class="text-3xl pt-4">{accountName}</div>
         </div>
         <div class="text-4xl pt-2">{statusMessage}</div>
