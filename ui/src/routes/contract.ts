@@ -16,15 +16,18 @@ export async function initContract(accountAddress: string) {
     let accounts = await web3Accounts();
 
     account = accounts.find((acc) => acc.address == accountAddress);
-    injector = await web3FromSource(account.meta.source);
 
-    const wsProvider = new WsProvider(ALEPH_ZERO_TESTNET_WS);
-    const api = await ApiPromise.create({ provider: wsProvider });
+    if (account) {
+        injector = await web3FromSource(account.meta.source);
 
-    gasLimit = api.registry.createType("WeightV2", {
-        refTime: 3912368128,
-        proofSize: 131072,
-    }) as any;
-    
-    return new ContractPromise(api, CONTRACT_META, CONTRACT);
+        const wsProvider = new WsProvider(ALEPH_ZERO_TESTNET_WS);
+        const api = await ApiPromise.create({ provider: wsProvider });
+
+        gasLimit = api.registry.createType("WeightV2", {
+            refTime: 3912368128,
+            proofSize: 131072,
+        }) as any;
+
+        return new ContractPromise(api, CONTRACT_META, CONTRACT);
+    }
 }

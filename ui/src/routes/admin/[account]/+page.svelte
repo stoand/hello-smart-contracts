@@ -42,7 +42,7 @@
     async function init() {
         contract = await initContract(accountId);
 
-        console.log("acc", account);
+        console.log('initing');
 
         if (!account) {
             status = "invalidAccount";
@@ -110,6 +110,10 @@
 </script>
 
 <AccountSearch account={accountId} />
+
+{#if status == 'invalidAccount'}
+        <div class="text-4xl mt-16 ml-16">Falsches Konto Id</div>
+{/if}
 
 <div class="ml-16 mt-16 mb-16 {status == 'loaded' ? '' : 'opacity-0'}">
     <div class="flex justify-between">
