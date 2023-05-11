@@ -98,7 +98,13 @@
                 end.setUTCMinutes(timeRange.end.minute);
             }
 
-            return end.getMinutes() - timeRange.start.minute + "M";
+            let minutes = end.getMinutes() - timeRange.start.minute;
+
+            if (minutes < 0) {
+                minutes += 60;
+            }
+
+            return minutes + "M";
         } else {
             return "";
         }
