@@ -41,10 +41,7 @@
 
     async function init() {
         contract = await initContract($page.params.account);
-
-        console.log('initing');
-
-        console.log('acc', accountId);
+        workdays = [];
 
         if (!account) {
             status = "invalidAccount";
