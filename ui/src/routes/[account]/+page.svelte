@@ -98,7 +98,6 @@
                     account.address,
                     { signer: injector.signer },
                     async (result: any) => {
-                        console.log('result', result);
                         if (!processedResult && result.dispatchInfo) {
                             processedResult = true;
                             await reloadContract();

@@ -11,6 +11,7 @@
     let currentTimeOffset: number;
     let currentTime = "";
     let barContainer: any;
+    let barWidth: number;
 
     let MIN_WORK_HOUR = 8;
     let MAX_WORK_HOUR = 17;
@@ -21,7 +22,10 @@
     setInterval(() => (now = new Date()), 1000);
 
     $: if (barContainer && timeRange) {
-        let hourOffset = barContainer.scrollWidth / HOUR_COUNT;
+        if (!barWidth) {
+            barWidth = barContainer.scrollWidth;
+        }
+        let hourOffset = barWidth / HOUR_COUNT;
         let hours = now.getHours() + now.getMinutes() / 60;
 
         currentTimeOffset = (hours - MIN_WORK_HOUR) * hourOffset;
@@ -49,7 +53,8 @@
                 let offset = (end - MIN_WORK_HOUR) * hourOffset;
                 workRangePixels.width = offset - workRangePixels.start;
             } else {
-                workRangePixels.width = currentTimeOffset - workRangePixels.start;
+                workRangePixels.width =
+                    currentTimeOffset - workRangePixels.start;
             }
         }
     }
