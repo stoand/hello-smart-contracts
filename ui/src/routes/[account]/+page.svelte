@@ -1,48 +1,27 @@
 <script lang="ts">
     import { page } from "$app/stores";
     import Button from "./button.svelte";
+    import ProgressBar from "../progress-bar.svelte";
     import * as Util from "../util";
-    import { onMount } from "svelte";
     import { initContract, gasLimit, injector, account } from "../contract";
 
-    const MIN_WORK_HOUR = 8;
-    const MAX_WORK_HOUR = 17;
-
-    let barContainer: any;
-
     let workHours: { hour: number; offset: number }[] = [];
-    let workRangePixels = { start: 0, width: 0 };
 
-    let currentTime = "";
-    let currentTimeOffset = 0;
     let status: "notStarted" | "working" | "done";
     let statusMessage = "";
     let contract: any;
     let error = '';
-
-    let HOUR_COUNT = MAX_WORK_HOUR - MIN_WORK_HOUR;
+    let timeRange: any;
 
     let inited = false;
 
-    $: if (barContainer && !inited) {
+    $: if (!inited) {
         (async function () {
-            let hourOffset = barContainer.scrollWidth / HOUR_COUNT;
-
-            for (let i = MIN_WORK_HOUR; i <= MAX_WORK_HOUR; i++) {
-                workHours.push({
-                    hour: i,
-                    offset: (i - MIN_WORK_HOUR) * hourOffset,
-                });
-            }
-
             workHours = workHours;
 
             contract = await initContract($page.params.account);
 
             await reloadContract();
-            await reloadTime();
-
-            setInterval(reloadTime, 1000);
 
             inited = true;
         })();
@@ -57,7 +36,7 @@
             }
         );
 
-        let timeRange = output?.toHuman().Ok;
+        timeRange = output?.toHuman().Ok;
 
         if (timeRange.start && timeRange.end) {
             status = "done";
@@ -69,40 +48,9 @@
             status = "notStarted";
             statusMessage = "Noch nicht Angefangen";
         }
-
-        let hourCount = MAX_WORK_HOUR - MIN_WORK_HOUR;
-        let hourOffset = barContainer.scrollWidth / hourCount;
-
-        if (timeRange.start) {
-            let start = Util.boundToHour(timeRange.start);
-            workRangePixels.start = (start - MIN_WORK_HOUR) * hourOffset - 3;
-        }
-
-        if (timeRange.end) {
-            let end = Util.boundToHour(timeRange.end);
-            let offset = (end - MIN_WORK_HOUR) * hourOffset;
-            workRangePixels.width = offset - workRangePixels.start;
-        }
     }
 
-    let x = 0;
-
-    async function reloadTime() {
-        currentTime = Util.currentTime();
-
-        let now = new Date();
-        let hours = now.getHours() + now.getMinutes() / 60;
-        let hourCount = MAX_WORK_HOUR - MIN_WORK_HOUR;
-        let hourOffset = barContainer.scrollWidth / hourCount;
-
-        currentTimeOffset = (hours - MIN_WORK_HOUR) * hourOffset;
-
-        if (status === "working") {
-            workRangePixels.width = currentTimeOffset - workRangePixels.start;
-        }
-    }
-
-    function handleError(err) {
+    function handleError(err: any) {
         if (err.message.indexOf('1010:') === 0) {
             error = 'Bitte Tokens auf Konto Überweisen';
         } else {
@@ -128,7 +76,6 @@
                         if (!processedResult && result.dispatchInfo) {
                             processedResult = true;
                             await reloadContract();
-                            await reloadTime();
                         }
                     }
                 );
@@ -155,7 +102,6 @@
                         if (!processedResult && result.dispatchInfo) {
                             processedResult = true;
                             await reloadContract();
-                            await reloadTime();
                         }
                     }
                 );
@@ -171,33 +117,7 @@
     <div class="text-5xl mt-4">{statusMessage}</div>
 
     <div class="p-10">
-        <div
-            bind:this={barContainer}
-            class="relative mt-16 mr-16 h-20 border-white border-solid border-[1px]"
-        >
-            {#each workHours as workHour}
-                <div
-                    style="position: absolute; left: {-38 +
-                        workHour.offset}px; top: -40px"
-                    class="text-3xl"
-                >
-                    {workHour.hour}:00
-                </div>
-            {/each}
-            <div
-                class="bg-white"
-                style="height: 100%; position: absolute; left: {workRangePixels.start}px;
-                width:{workRangePixels.width}px"
-            />
-
-            <div
-                style="position: absolute; left: {-44 +
-                    currentTimeOffset}px; bottom: -50px"
-                class="text-4xl"
-            >
-                {currentTime}
-            </div>
-        </div>
+        <ProgressBar {timeRange}/>
     </div>
 
     <div class="mt-20">

@@ -126,7 +126,7 @@
 
     <div>
         <div>
-            <table>
+            <table class="w-full">
                 <tbody>
                     {#each workdays as workday}
                         <tr class="text-3xl">
@@ -138,7 +138,14 @@
                             <td class="pt-10 pr-4 font-bold"
                                 >{daysOfWeek[workday.weekday]}</td
                             >
-                            <td class="pt-10 pr-8">todo progress bar</td>
+                            <td class="pt-10 pr-8 w-full">
+                                <div
+                                    class="relative mt-16 mr-16 h-20 border-white border-solid border-[1px]"
+                                >
+                                    
+                                </div>
+                                
+                            </td>
                             <td class="pt-10 pr-6"
                                 >{hoursDiff(workday.timeRange)}</td
                             >
