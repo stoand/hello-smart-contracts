@@ -56,7 +56,7 @@
 
             if (timeRangeToday.start && timeRangeToday.end) {
                 status = "done";
-                statusMessage = "Heute Fertig mit Arbeit";
+                statusMessage = "Heute fertig mit Arbeit";
             } else if (timeRangeToday.start) {
                 status = "working";
                 statusMessage = `Arbeitet Heute seit ${Util.boundToString(
@@ -64,7 +64,7 @@
                 )}`;
             } else {
                 status = "notStarted";
-                statusMessage = "Heute Noch nicht Angefangen";
+                statusMessage = "Heute noch nicht Angefangen";
             }
 
             status = "loaded";
