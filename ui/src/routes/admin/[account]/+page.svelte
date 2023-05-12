@@ -47,6 +47,7 @@
 
         if (!account) {
             status = "invalidAccount";
+            loadedAccountId = "";
         } else {
             accountId = account.address;
             accountName = account.meta.name;
