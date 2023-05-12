@@ -27,7 +27,7 @@
 
     $: if (barContainer && timeRange) {
         if (!barWidth) {
-            barWidth = barContainer.scrollWidth;
+            barWidth = barContainer.scrollWidth - 15;
         }
         let hourOffset = barWidth / HOUR_COUNT;
         let hours = now.getHours() + now.getMinutes() / 60;
@@ -70,7 +70,7 @@
 >
     {#each workHours as workHour}
         <div
-            style="position: absolute; left: {-38 +
+            style="position: absolute; left: {-25 +
                 workHour.offset}px; top: -40px"
             class="text-3xl"
         >
