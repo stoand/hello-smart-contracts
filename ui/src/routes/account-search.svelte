@@ -1,25 +1,56 @@
 <script lang="ts">
     export let account = "";
 
-    export let accounts = [{name: "PeskyRabbit", address: "1"}, {name: "Artichoke", address: "1"}];
+    let showAccountList = false;
+
+    export let accounts = [
+        {
+            name: "PeskyRabbit",
+            address: "5DCwWjuUJ8EaExG5iH94WQ3bq5rtLRhxwYCEsKU2Ry9atLHm",
+        },
+        {
+            name: "Artichoke",
+            address: "5DsjA5P9KjwZpndfJP63Nvr8g9ButB5bLxaxu7cbnByKBPM3",
+        },
+    ];
+
+    function shortenAddress(address: string) {
+        let chars = address.split("");
+
+        return (
+            chars.slice(0, 4).join("") +
+            "..." +
+            chars.slice(chars.length - 4, chars.length).join("")
+        );
+    }
 </script>
 
 <div class="ml-16">
     <div class="text-3xl mt-20">Konto Id</div>
 
     <div class="flex mt-6 relative">
-        <input
+        <input on:focus={() => showAccountList = true} on:blur={() => setTimeout(() => showAccountList = false, 300)}
             bind:value={account}
             class="text-2xl p-2 rounded-2xl rounded bg-transparent border-solid border-[1px]"
             type="text"
         />
-        <div
-            class="suggestions text-2xl p-2 rounded-2xl rounded bg-blue border-solid border-[1px]"
-        >
-            {#each accounts as account}
-            <a href="/admin/{account.address}" class="block border-b border-solid p-2">{account.name}</a>
-            {/each}
-        </div>
+        {#if accounts?.length > 0 && showAccountList}
+            <div
+                class="suggestions text-2xl p-2 rounded-2xl rounded bg-blue border-solid border-[1px]"
+            >
+                {#each accounts as account}
+                    <a
+                        href="/admin/{account.address}"
+                        class="block border-b border-solid p-2"
+                    >
+                        {account.name}
+                        <span class="text-lg text-white-transparent3"
+                            >{shortenAddress(account.address)}</span
+                        ></a
+                    >
+                {/each}
+            </div>
+        {/if}
 
         <a
             href="/admin/{account}"
@@ -36,14 +67,9 @@
         left: 0;
         top: 40px;
         z-index: 9999;
-        display: none;
-    }
-
-    input:focus ~ .suggestions {
-        display: block;
     }
 
     .suggestions > a:last-child {
-        border: none; 
+        border: none;
     }
 </style>
