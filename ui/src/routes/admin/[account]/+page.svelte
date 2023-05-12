@@ -9,6 +9,7 @@
     $: accountId = $page.params.account;
     let accountName: string;
     let statusMessage = "";
+    let loadedAccountId: string;
 
     let workdays: any = [];
     let contract: any;
@@ -68,6 +69,8 @@
             }
 
             status = "loaded";
+
+            loadedAccountId = $page.params.account;
         }
     }
 
@@ -126,7 +129,7 @@
     <div class="flex justify-between">
         {#if status == 'loaded' && account !== undefined}
             <div class="flex">
-                <AccountIcon accountId={accountId} />
+                <AccountIcon accountId={loadedAccountId} />
                 <div class="text-3xl pt-4">{accountName}</div>
             </div>
         {/if}
