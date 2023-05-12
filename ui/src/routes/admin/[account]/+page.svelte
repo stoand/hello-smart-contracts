@@ -51,6 +51,21 @@
             accountId = account.address;
             accountName = account.meta.name;
 
+            let searchedAccounts = JSON.parse(localStorage.getItem('admin-account-suggestions') || '[]');
+
+            let searchedAlready = false;
+            for (let account of searchedAccounts) {
+                if (account.address == accountId) {
+                    searchedAlready = true;
+                }
+            }
+
+            if (!searchedAlready) {
+                searchedAccounts.push({ name: accountName, address: accountId });
+            }
+            
+            localStorage.setItem('admin-account-suggestions', JSON.stringify(searchedAccounts));
+
             await loadWorkdays();
 
             let timeRangeToday = workdays[0].timeRange;
@@ -119,7 +134,7 @@
     });
 </script>
 
-<AccountSearch account={accountId} />
+<AccountSearch account={accountId} loadedAccount={loadedAccountId} />
 
 {#if status == "invalidAccount"}
     <div class="text-4xl mt-16 ml-16">Falsches Konto Id</div>

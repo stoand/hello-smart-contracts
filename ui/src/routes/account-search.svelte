@@ -1,18 +1,11 @@
 <script lang="ts">
     export let account = "";
+    export let loadedAccount = "";
 
     let showAccountList = false;
 
-    export let accounts = [
-        {
-            name: "PeskyRabbit",
-            address: "5DCwWjuUJ8EaExG5iH94WQ3bq5rtLRhxwYCEsKU2Ry9atLHm",
-        },
-        {
-            name: "Artichoke",
-            address: "5DsjA5P9KjwZpndfJP63Nvr8g9ButB5bLxaxu7cbnByKBPM3",
-        },
-    ];
+    $: accounts = JSON.parse(localStorage.getItem('admin-account-suggestions') || '[]')
+        .filter((acc: any) => acc.address != loadedAccount);
 
     function shortenAddress(address: string) {
         let chars = address.split("");
@@ -67,6 +60,11 @@
         left: 0;
         top: 40px;
         z-index: 9999;
+        opacity: 0;
+    }
+    
+    input:focus ~ .suggestions {
+        opacity: 1;
     }
 
     .suggestions > a:last-child {
